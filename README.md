@@ -10,3 +10,8 @@ Required features:
 * Randomly move stock price and make delta bets in the options market
 * settings.txt file to choose speed, difficulty, tick sizes etc.
 * UI to select option, bid/offer, volume
+
+### TO DO
+# Merge PublicBoard and MarketBoard
+# Check markets against *current* fair (may need to update)
+# Make stock tick in 5 cents, r/c in 1 cent
