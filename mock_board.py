@@ -1,27 +1,29 @@
-from mock_ccy import Price, Market
+from mock_ccy import Price
+from mock_mkt import Market
+from mock_strings import spaces
 from scipy.stats import norm
 import numpy as np
 import pandas as pd
 import random
+import copy
 
 Phi = norm.cdf
-r = 0.01
-sigma = 0.7
-t = 0.1
-interval = 5
 opttypes = ["call", "put", "put&stock", "buywrite"]
-
-
-def PV(arr):
-    # Get Present Value
-    return arr * np.exp(-r * t)
 
 
 class Board(object):
     # Mock board parent class with options, stock and r/c
+    rate = 0.01
+    sigma = 0.7
+    expiry = 0.1
+    box = 5
+
+    def PV(self, arr):
+        # Get Present Value
+        return arr * np.exp(-self.rate * self.expiry)
 
     def copy(self):
-        return deepcopy(self)
+        return copy.deepcopy(self)
 
     def ix(self, strike, opt):
         return self.df.loc[strike, opt]
@@ -30,22 +32,23 @@ class Board(object):
         strike, opt = iterable
         return self.ix(strike, opt)
 
-    @staticmethod
-    def get_strikes():
-        strikes = [60, 65, 70, 75, 80]
-        K = np.array(strikes)
-        return K
+    def get_strikes(self, S):
+        box = int(self.box)
+        atm = int(Price(S, box).round())
+        return [atm - 2 * box, atm - box, atm, atm + box, atm + 2 * box]
 
-    @staticmethod
-    def get_rc():
-        K = Board.get_strikes()
-        return Price(np.mean(K - PV(K)))
+    def get_rc(self, S):
+        K = np.array(self.get_strikes(S))
+        return Price(np.mean(K - self.PV(K)))
 
-    @staticmethod
-    def infer_board_as_df(S):
+    def infer_board_as_df(self, S):
         # Infer dataframe of option Prices from stock price using Black-Scholes
-        K = Board.get_strikes()
-        rc = Board.get_rc()
+        sigma = self.sigma
+        t = self.expiry
+        r = self.rate
+        strikes = self.get_strikes(S)
+        K = np.array(strikes)
+        rc = self.get_rc(S)
         df = pd.DataFrame(columns=["call", "strike", "put", "put&stock",
                                    "buywrite", "callspread", "calldelta"])
         d_plus = np.log(S / K)
@@ -53,18 +56,15 @@ class Board(object):
         d_plus /= sigma * np.sqrt(t)
         d_minus = d_plus - sigma * np.sqrt(t)
         df["calldelta"] = 100 * Phi(d_plus)
-        df["call"] = Phi(d_plus) * S - Phi(d_minus) * PV(K)
-        df["put"] = Phi(-d_minus) * PV(K) - Phi(-d_plus) * S
+        df["call"] = Phi(d_plus) * S - Phi(d_minus) * self.PV(K)
+        df["put"] = Phi(-d_minus) * self.PV(K) - Phi(-d_plus) * S
         df["callspread"] = df.call - df.call.shift(-1)
         df["put&stock"] = df.call - rc
         df["buywrite"] = df.put + rc
-        df["strike"] = K
+        df["strike"] = strikes
         df = df.set_index("strike")
         df = df.applymap(Price)
         df.calldelta = df.calldelta.map(int)
-        df.index = df.index.map(int)
-        print(S, rc)
-        print(df)
         return df
 
     def __repr__(self):
@@ -83,23 +83,23 @@ class PriceBoard(Board):
 
     def __init__(self, S=None):
         if S is None:
-            S = random.uniform(50, 80)
+            S = random.uniform(30, 120)
         self.S = Price(S)
-        self.rc = Board.get_rc()
-        self.df = Board.infer_board_as_df(S)
+        self.rc = self.get_rc(S)
+        self.df = self.infer_board_as_df(S)
 
 
 class MarketBoard(Board):
     # A board of markets, tied to a Price Board
 
-    def __init__(self, PriceBoard):
-        board = PriceBoard.copy()
-        self.PriceBoard = board.copy()
-        self.S = board.S.to_market()
-        self.rc = board.rc
-        self.df = board.df
+    def __init__(self, S=None):
+        board = PriceBoard(S)
+        df = board.df
         for op in opttypes:
-            self.df[op] = self.df[op].map(lambda val: val.to_market())
+            df[op] = df[op].map(Market)
+        self.S = Market(board.S)
+        self.rc = board.rc
+        self.df = df
 
     def __str__(self):
         # Prettified string representation of options board
@@ -108,7 +108,7 @@ class MarketBoard(Board):
         s += "\n"
         s += spaces(5)
         s += "Delta      Call        "
-        s += "|  Strike  |"
+        s += "|  Strike   |"
         s += "        Put         Buywrite       Put&Stock"
         for strike, row in self.df.iterrows():
             s += "\n"
@@ -116,7 +116,7 @@ class MarketBoard(Board):
             rowarray = ["{:2d}".format(row["calldelta"]),
                         row["call"],
                         "|",
-                        strike,
+                        "{:3d}".format(strike),
                         "|",
                         row["put"],
                         row["buywrite"],
@@ -127,54 +127,15 @@ class MarketBoard(Board):
                 s += "\n{}<".format(row["callspread"])
         return s
 
-
-class PublicBoard(MarketBoard):
-    # This is the board shown to the player
-
-    def __init__(self, fairBoard):
-        self.fairBoard = fairBoard
-        board = fairBoard.copy()
-        self.initialFairBoard = board.copy()
-        board = MarketBoard(board)
-        self.S = board.S
-        self.rc = board.rc
-        self.df = board.df
+    def clear(self):
+        board = self.copy()
         for op in opttypes:
-            self.df[op] = self.df[op].map(lambda mkt: mkt.nullify())
-        self.df.loc[65, "put&stock"] = fairBoard.df.loc[65, "put&stock"]
-        self.df.loc[80, "buywrite"] = fairBoard.df.loc[80, "buywrite"]
-
-    def get_user_market(self, row, col):
-        # Ask user for their market in an option
-        query = "What is your market in the {} {}s?\n".format(row, col)
-        try:
-            market = raw_input(query)
-            if market:
-                market = Market.from_string(market)
-                fair = self.initialFairBoard.df.loc[row, col]
-                if market.contains(fair):
-                    self.df.loc[row, col] = market
-                else:
-                    print("Sorry that market does not contain the fair value!")
-                    print("Please try again.")
-                    self.get_user_market(row, col)
-            else:
-                raise IOError(market)
-        except (ValueError, IOError):
-            print("Sorry, that doesn't look like a valid market")
-            self.get_user_market(row, col)
-
-    def get_user_markets_in_col(self, col):
-        # getMarket for all missing options in a column
-        for strike, row in self.df.iterrows():
-            if row[col].hasNull():
-                print(self)
-                self.get_user_market(strike, col)
-
-    def get_user_markets_all(self):
-        # getMarket for all missing calls and puts
-        self.get_user_markets_in_col("call")
-        self.get_user_markets_in_col("put")
+            board.df[op] = board.df[op].map(lambda mkt: mkt.nullify())
+        return board
 
 if __name__ == "__main__":
-    PriceBoard()
+    print(PriceBoard())
+    input("")
+    print(MarketBoard())
+    input("")
+    print(MarketBoard().clear())
