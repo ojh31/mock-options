@@ -25,12 +25,34 @@ class Board(object):
     def copy(self):
         return copy.deepcopy(self)
 
-    def ix(self, strike, opt):
+    def loc(self, strike, opt):
         return self.df.loc[strike, opt]
+
+    def iloc(self, row, col):
+        strike = self.get_strikes(self.S)[row]
+        return self.df.loc[strike, col]
 
     def pos(self, iterable):
         strike, opt = iterable
         return self.ix(strike, opt)
+
+    def __getitem__(self, key):
+        if len(key) == 1:
+            return self.df[key]
+        row, col = key
+        if row < 5:
+            return self.iloc(row, col)
+        else:
+            return self.loc(row, col)
+
+    def __setitem__(self, key, value):
+        if len(key) == 1:
+            self.df[key] = value
+        row, col = key
+        if row < 5:
+            self.df.iloc[row, col] = value
+        else:
+            self.df.loc[row, col] = value
 
     def get_strikes(self, S):
         box = int(self.box)
@@ -96,10 +118,11 @@ class MarketBoard(Board):
         board = PriceBoard(S)
         df = board.df
         for op in opttypes:
-            df[op] = df[op].map(Market)
-        self.S = Market(board.S)
+            df[op] = df[op].map(Market.from_price)
+        self.S = Market.from_price(board.S)
         self.rc = board.rc
         self.df = df
+        self.fair = board
 
     def __str__(self):
         # Prettified string representation of options board
@@ -133,9 +156,19 @@ class MarketBoard(Board):
             board.df[op] = board.df[op].map(lambda mkt: mkt.nullify())
         return board
 
+    def make_babies(self):
+        board = self.copy()
+        call_fair = board.fair[0, 'put&stock']
+        put_fair = board.fair[0, 'buywrite']
+        board[0, 'buywrite'] = Market.from_price(put_fair, width=.2)
+        board[0, 'put&stock'] = Market.from_price(call_fair, width=.2)
+        return board
+
 if __name__ == "__main__":
     print(PriceBoard())
     input("")
     print(MarketBoard())
     input("")
     print(MarketBoard().clear())
+    input("")
+    print(MarketBoard().make_babies())

@@ -17,20 +17,12 @@ class Market(object):
         else:
             return 1.0
 
-    def __init__(self, *prices, **kwargs):
-        if len(prices) == 2:
-            assert 'width' not in kwargs
-            bid, ask = prices
-            bid = float(bid)
-            ask = float(ask)
-        elif len(prices) == 1:
-            (mid, ) = prices
+    @classmethod
+    def from_price(cls, mid, width=None):
             mid = float(mid)
             max_width = Market.infer_max_width(mid)
             max_width = Market.infer_max_width(mid - 0.5 * max_width)
-            if 'width' in kwargs:
-                width = kwargs['width']
-            else:
+            if width is None:
                 width = max_width
             bid = mid - 0.5 * width
             ask = mid + 0.5 * width
@@ -38,14 +30,16 @@ class Market(object):
             bid = Price(bid, tick_size).ceil()
             bid = max(float(bid), 0)
             ask = Price(ask, tick_size).floor()
-        else:
-            raise AttributeError('Too many prices passed for Market init',
-                                 prices)
+            return cls(bid, ask)
+
+    def __init__(self, bid, ask):
+        bid = float(bid)
+        ask = float(ask)
         max_width = Market.infer_max_width(bid)
         if bid > ask:
-            raise IOError('Bid cannot exceed ask price!', prices)
-        if ask - bid > max_width + 0.01:
-            raise IOError('Maximum width exceeded', bid, ask, prices)
+            raise IOError('Bid cannot exceed ask price!', bid, ask)
+        if ask - bid >= max_width + 0.01:
+            raise IOError('Maximum width exceeded', bid, ask)
         self.bid = Price(bid)
         self.ask = Price(ask)
 
@@ -97,4 +91,4 @@ class Market(object):
 
     def __float__(self):
         # Python float representation
-        return float(self.mid)
+        return float(self.get_mid().round())
