@@ -49,7 +49,6 @@ class Board(object):
         if len(key) == 1:
             self.df[key] = value
         row, col = key
-        print(row, col, value)
         if row < 5:
             strike = self.get_strikes()[row]
         else:
@@ -164,28 +163,28 @@ class MarketBoard(Board):
         return s
 
     def clear(self):
-        board = self.copy()
         for op in opttypes:
-            board.df[op] = board.df[op].map(lambda mkt: mkt.nullify())
-        return board
+            self.df[op] = self.df[op].map(lambda mkt: mkt.nullify())
+        return self
 
     def make_babies(self):
-        board = self.copy()
         bw_pos = (0, 'buywrite')
         pns_pos = (-1, 'put&stock')
-        call_fair = board.fair[pns_pos]
-        put_fair = board.fair[bw_pos]
-        board[bw_pos] = Market.from_price(put_fair, width=.2)
-        board[pns_pos] = Market.from_price(call_fair, width=.2)
-        return board
+        call_fair = self.fair[pns_pos]
+        put_fair = self.fair[bw_pos]
+        self[bw_pos] = Market.from_price(put_fair, width=.2)
+        self[pns_pos] = Market.from_price(call_fair, width=.2)
+        return self
+
+
+class PublicBoard(MarketBoard):
+
+    def __init__(self):
+        MarketBoard.__init__(self)
+        self = self.clear().make_babies()
 
 if __name__ == "__main__":
-    markets = MarketBoard()
-    blanks = markets.clear()
-    print(markets.fair)
+    public_board = PublicBoard()
+    print(public_board.fair)
     input("")
-    print(markets)
-    input("")
-    print(blanks)
-    input("")
-    print(blanks.make_babies())
+    print(public_board)
