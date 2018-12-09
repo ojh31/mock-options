@@ -1,6 +1,6 @@
 import math
 import numpy as np
-from mock_strings import spaces
+from strings import spaces
 
 
 class Price(object):
@@ -77,7 +77,7 @@ class Price(object):
         # Scalar multiplication
         return Price(float(other) * float(self))
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         # Scalar division
         return Price(float(self) / float(other))
 

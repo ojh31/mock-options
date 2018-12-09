@@ -1,4 +1,4 @@
-from mock_ccy import Price, OptionPrice
+from currencies import Price, OptionPrice
 import numpy as np
 
 
@@ -92,3 +92,8 @@ class Market(object):
     def __float__(self):
         # Python float representation
         return float(self.get_mid().round())
+
+if __name__ == '__main__':
+    pass
+    # should demonstrate Market.from_price
+    # need to deal with widths correctly

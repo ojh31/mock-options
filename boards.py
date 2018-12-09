@@ -1,6 +1,6 @@
-from mock_ccy import Price
-from mock_mkt import Market
-from mock_strings import spaces
+from currencies import Price
+from markets import Market
+from strings import spaces
 from scipy.stats import norm
 import numpy as np
 import pandas as pd
@@ -49,12 +49,16 @@ class Board(object):
         if len(key) == 1:
             self.df[key] = value
         row, col = key
+        print(row, col, value)
         if row < 5:
-            self.df.iloc[row, col] = value
+            strike = self.get_strikes()[row]
         else:
-            self.df.loc[row, col] = value
+            strike = row
+        self.df.loc[strike, col] = value
 
-    def get_strikes(self, S):
+    def get_strikes(self, S=None):
+        if S is None:
+            S = self.S
         box = int(self.box)
         atm = int(Price(S, box).round())
         return [atm - 2 * box, atm - box, atm, atm + box, atm + 2 * box]
@@ -114,12 +118,21 @@ class PriceBoard(Board):
 class MarketBoard(Board):
     # A board of markets, tied to a Price Board
 
-    def __init__(self, S=None):
-        board = PriceBoard(S)
-        df = board.df
+    def __init__(self, S=None, board=None):
+        if S is not None and board is not None:
+            raise AttributeError('Marketboard over-specified by: ',
+                                 'S = ',
+                                 S,
+                                 'board = ',
+                                 board)
+        elif board is not None:
+            S = board.S
+        else:
+            board = PriceBoard(S)
+        df = board.df.copy()
         for op in opttypes:
             df[op] = df[op].map(Market.from_price)
-        self.S = Market.from_price(board.S)
+        self.S = Market.from_price(board.S, width=.20)
         self.rc = board.rc
         self.df = df
         self.fair = board
@@ -158,17 +171,21 @@ class MarketBoard(Board):
 
     def make_babies(self):
         board = self.copy()
-        call_fair = board.fair[0, 'put&stock']
-        put_fair = board.fair[0, 'buywrite']
-        board[0, 'buywrite'] = Market.from_price(put_fair, width=.2)
-        board[0, 'put&stock'] = Market.from_price(call_fair, width=.2)
+        bw_pos = (0, 'buywrite')
+        pns_pos = (-1, 'put&stock')
+        call_fair = board.fair[pns_pos]
+        put_fair = board.fair[bw_pos]
+        board[bw_pos] = Market.from_price(put_fair, width=.2)
+        board[pns_pos] = Market.from_price(call_fair, width=.2)
         return board
 
 if __name__ == "__main__":
-    print(PriceBoard())
+    markets = MarketBoard()
+    blanks = markets.clear()
+    print(markets.fair)
     input("")
-    print(MarketBoard())
+    print(markets)
     input("")
-    print(MarketBoard().clear())
+    print(blanks)
     input("")
-    print(MarketBoard().make_babies())
+    print(blanks.make_babies())
