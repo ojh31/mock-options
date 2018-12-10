@@ -2,6 +2,8 @@ from markets import Market
 from currencies import Price
 from structures import Structure
 from boards import PriceBoard
+import numpy as np
+from sounds import shout
 
 
 buywords = set(["buy", "bid", "long", "mine", "buying"])
@@ -18,6 +20,7 @@ def get_user_market(asset=None):
     fair = asset.get_price()
     query = "Make me a market"
     query += " in the {}".format(asset)
+    shout(query)
     query += ":\n"
     try:
         strmkt = input(query)
@@ -30,7 +33,7 @@ def get_user_market(asset=None):
                 print("Please try again.")
                 return get_user_market(asset)
         else:
-            raise IOError(market)
+            return Market(np.nan, np.nan)
     except (ValueError, IOError) as e:
         print("Sorry, that doesn't look like a valid market")
         print(e)
@@ -39,12 +42,15 @@ def get_user_market(asset=None):
 
 def market_from_string(strmkt):
     # Infer Market from a string
+    if strmkt == '':
+        return Market(np.nan, np.nan)
     bid, ask = strmkt.replace(" ", "").replace("-", "@").split("@")
     bid = float(bid)
     ask = float(ask)
     return Market(bid, ask)
 
 
+"""
 def get_user_order():
     order = raw_input("").lower()
     if any(buywords in order):
@@ -53,13 +59,14 @@ def get_user_order():
         return sell_asset(order)
     else:
         print("Sorry I can't understand if you're buying or selling.")
+"""
 
 if __name__ == "__main__":
     board = PriceBoard()
     asset = Structure.rand(board)
     print(board)
     mkt = get_user_market(asset)
-    print(mkt)
+    print('User market: {}'.format(mkt))
     val = input('Give me a price:\n')
     px = Price(val)
     print("Price = {}".format(px))

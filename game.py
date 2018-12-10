@@ -1,6 +1,7 @@
 from boards import PublicBoard
 from structures import Structure
 from user_input import get_user_market
+from sounds import rand_order
 
 
 class Mock(object):
@@ -15,7 +16,8 @@ class Mock(object):
         asset = Structure.rand(self.fairBoard)
         print(self.publicBoard)
         mkt = get_user_market(asset)
-        print(mkt)
+        print('Player market: {}'.format(mkt))
+        rand_order()
         self.play()
 
 

@@ -5,7 +5,10 @@ import os
 
 
 def audio_path(fname):
-    mpeg_path = os.path.join(os.getcwd(), 'sound-data', fname)
+    audio_cache_dir = os.path.join(os.getcwd(), 'sound-cache')
+    if not os.path.isdir(audio_cache_dir):
+        os.mkdir(audio_cache_dir)
+    mpeg_path = os.path.join(audio_cache_dir, fname)
     return mpeg_path
 
 
@@ -23,11 +26,14 @@ def text_to_mp3(text, mpeg_name):
     tts.save(mpeg_path)
 
 
-def play_mp3(mpeg_name):
+def play_mp3(mpeg_name, cached=True):
     """
     Play .mp3 file using mpg321
     """
-    mpeg_path = audio_path(mpeg_name)
+    if cached:
+        mpeg_path = audio_path(mpeg_name)
+    else:
+        mpeg_path = mpeg_name
     if os.path.isfile(mpeg_path):
         os.system('mpg321 -q ' + mpeg_path)
     else:
@@ -47,15 +53,13 @@ def rand_countdown(beats_min=5, beats_max=30, verbose=True):
     """
     Random countdown after key press
     """
-    start_dialogue = input("Press Enter when ready")
     beats_to_wait = random.randint(5, 30)
     for i in range(beats_to_wait, 0, -1):
         if verbose:
             sys.stdout.write('\r{:d}'.format(i))
             sys.stdout.flush()
-        play_mp3('clock-ticking.mp3')
+        play_mp3('clock-ticking.mp3', cached=False)
         clear_line()
-    return start_dialogue
 
 
 def rand_order():
@@ -69,4 +73,5 @@ def rand_order():
 
 
 if __name__ == "__main__":
+    start_dialogue = input("Press Enter when ready")
     rand_order()
