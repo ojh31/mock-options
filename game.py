@@ -1,5 +1,5 @@
 from boards import PublicBoard
-from structures import Structure
+from structures import Option
 from user_input import get_user_market
 from sounds import rand_order
 
@@ -13,7 +13,7 @@ class Mock(object):
         self.play()
 
     def play(self):
-        asset = Structure.rand(self.fairBoard)
+        asset = Option.rand(self.fairBoard)
         print(self.publicBoard)
         mkt = get_user_market(asset)
         print('Player market: {}'.format(mkt))

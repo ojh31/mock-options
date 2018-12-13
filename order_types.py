@@ -2,7 +2,8 @@ import enum
 import random
 
 
-class Direction(enum.Enum):
+@enum.unique()
+class Direction(enum.IntEnum):
     buy = 1
     sell = -1
 
