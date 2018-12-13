@@ -1,14 +1,25 @@
 from boards import PriceBoard
 import random
+import enum
 
 
-class Structure(object):
+@enum.unique
+class Structure(enum.Enum):
+    CALL = 'calls'
+    PUT = 'puts'
+    COMBO = 'combo'
 
-    def __init__(self, strikes, name, board):
+    def __str__(self):
+        return self.value
+
+
+class Option(object):
+
+    def __init__(self, strikes, structure, board):
         if isinstance(strikes, int):
             strikes = [strikes]
         self.strikes = strikes
-        self.name = name
+        self.structure = structure
         self.board = board
 
     @classmethod
@@ -17,32 +28,31 @@ class Structure(object):
             board = PriceBoard()
         strikes = board.get_strikes()
         strike = random.choice(strikes)
-        asset_types = ['Calls', 'Puts', 'Combo']
-        asset = random.choice(asset_types)
-        return Structure(strike, asset, board)
+        struct = random.choice(list(Structure))
+        return Option(strike, struct, board)
 
     def __repr__(self):
-        return str(self.strikes) + str(self.name)
+        return str(self.strikes) + str(self.structure)
 
     def __str__(self):
         strike_str = '/'.join(str(strike) for strike in self.strikes)
-        return strike_str + ' ' + str(self.name)
+        return strike_str + ' ' + str(self.structure)
 
     def get_price(self):
         board = self.board
         strikes = self.strikes
         df = board.df[board.df.index.isin(strikes)][['call', 'put']].copy()
-        name = self.name
-        if name == 'Calls':
+        structure = self.structure
+        if structure is Structure.CALL:
             return float(df.call)
-        elif name == 'Puts':
+        elif structure is Structure.PUT:
             return float(df.put)
-        elif name == 'Combo':
+        elif structure is Structure.COMBO:
             return float(df.call - df.put)
         else:
-            raise AttributeError('Unknown asset type: ', name)
+            raise AttributeError('Unknown struct type: ', structure)
 
 if __name__ == '__main__':
-    struct = Structure.rand()
+    struct = Option.rand()
     print(struct)
     print(struct.get_price())
