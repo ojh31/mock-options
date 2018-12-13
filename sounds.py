@@ -44,7 +44,7 @@ def shout(text):
     """
     Play sound from text
     """
-    mpeg_name = text.replace(' ', '_') + '.mp3'
+    mpeg_name = text.replace(' ', '_').replace('/', '_') + '.mp3'
     text_to_mp3(text, mpeg_name)
     play_mp3(mpeg_name)
 
