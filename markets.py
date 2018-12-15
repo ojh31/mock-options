@@ -93,6 +93,7 @@ class Market(object):
         # Python float representation
         return float(self.get_mid().round())
 
+
 if __name__ == '__main__':
     pass
     # should demonstrate Market.from_price

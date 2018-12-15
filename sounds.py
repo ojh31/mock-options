@@ -22,7 +22,9 @@ def text_to_mp3(text, mpeg_name):
     Google text-to-speech
     """
     mpeg_path = audio_path(mpeg_name)
-    text = text.replace('@', 'at').replace('/', ', ')
+    text = (text.replace('@', 'at')
+                .replace('/', ', ')
+                .replace('\n', ' '))
     tts = gTTS(text=text, lang='en')
     tts.save(mpeg_path)
 
@@ -45,7 +47,9 @@ def shout(text):
     """
     Play sound from text
     """
-    mpeg_name = text.replace(' ', '_').replace('/', '_') + '.mp3'
+    mpeg_name = (text.replace(' ', '_')
+                     .replace('/', '_')
+                     .replace('\n', '') + '.mp3')
     text_to_mp3(text, mpeg_name)
     play_mp3(mpeg_name)
 

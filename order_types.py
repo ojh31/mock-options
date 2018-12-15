@@ -55,15 +55,16 @@ class IcebergOrder(object):
         self.peak = peak
         self.total = total
 
-    def pop(self, fair, size=None):
+    def pop(self, size=None):
+        opt = self.option
         agg = self.aggression
         dirn = self.direction
-        price = OptionPrice((1 + dirn.value * agg) * fair)
+        price = OptionPrice((1 + dirn.value * agg) * opt.get_price())
         peak = self.peak
         if size is None:
             size = peak
         self.total -= size
-        return Order(self.option, self.direction, price, size)
+        return Order(opt, dirn, price, size)
 
     def is_empty(self):
         return self.total <= 0
@@ -72,4 +73,4 @@ class IcebergOrder(object):
 if __name__ == "__main__":
     ice = IcebergOrder.rand()
     while not ice.is_empty():
-        print(ice.pop(fair=100))
+        print(ice.pop())

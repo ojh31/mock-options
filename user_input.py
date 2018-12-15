@@ -1,6 +1,6 @@
 from markets import Market
 from currencies import Price
-from structures import Structure
+from order_types import IcebergOrder
 from boards import PriceBoard
 import numpy as np
 from sounds import shout
@@ -11,33 +11,34 @@ sellwords = set(["ask", "offer", "sell", "short", "yours", "your's",
                  "selling"])
 
 
-def get_user_market(asset=None):
+def get_user_market(order=None):
     """
     Get a Market
     """
-    if asset is None:
-        asset = Structure.rand()
-    fair = asset.get_price()
-    query = "Make me a market"
-    query += " in the {}".format(asset)
+    if order is None:
+        order = IcebergOrder.rand()
+    option = order.option
+    fair = option.get_price()
+    query = (f"Make me a market in "
+             f"{order.size} lots of "
+             f"the {option}:\n")
     shout(query)
-    query += ":\n"
     try:
         strmkt = input(query)
         if strmkt:
             market = market_from_string(strmkt)
-            if market.contains(fair):
-                return market
+            if market.bid > fair:
+                shout("Haha, okay... yours!")
+            elif market.ask < fair:
+                shout("Haha, okay... mine!")
             else:
-                print("Sorry that market does not contain the fair value!")
-                print("Please try again.")
-                return get_user_market(asset)
+                return market
         else:
             return Market(np.nan, np.nan)
     except (ValueError, IOError) as e:
         print("Sorry, that doesn't look like a valid market")
         print(e)
-        return get_user_market(asset)
+        return get_user_market(order)
 
 
 def market_from_string(strmkt):
@@ -63,9 +64,9 @@ def get_user_order():
 
 if __name__ == "__main__":
     board = PriceBoard()
-    asset = Structure.rand(board)
+    order = IcebergOrder.rand(board)
     print(board)
-    mkt = get_user_market(asset)
+    mkt = get_user_market(order)
     print('User market: {}'.format(mkt))
     val = input('Give me a price:\n')
     px = Price(val)

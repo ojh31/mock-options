@@ -89,6 +89,12 @@ class Price(object):
         # Python int representation
         return int(self.price)
 
+    def __gt__(self, other):
+        return self.price > other
+
+    def __lt__(self, other):
+        return self.price < other
+
 
 class OptionPrice(Price):
     """
@@ -101,6 +107,7 @@ class OptionPrice(Price):
         else:
             tick_size = 0.10
         Price.__init__(self, px, tick_size)
+
 
 if __name__ == "__main__":
     pass
