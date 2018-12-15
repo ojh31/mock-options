@@ -28,8 +28,8 @@ def get_user_market(order=None):
         if strmkt:
             market = market_from_string(strmkt)
             if market.bid > fair:
-                shout("Haha, okay... your's!")
-            elif market.offer < fair:
+                shout("Haha, okay... yours!")
+            elif market.ask < fair:
                 shout("Haha, okay... mine!")
             else:
                 return market
