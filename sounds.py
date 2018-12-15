@@ -22,6 +22,7 @@ def text_to_mp3(text, mpeg_name):
     Google text-to-speech
     """
     mpeg_path = audio_path(mpeg_name)
+    text = text.replace('@', 'at').replace('/', ', ')
     tts = gTTS(text=text, lang='en')
     tts.save(mpeg_path)
 

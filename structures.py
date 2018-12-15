@@ -53,7 +53,7 @@ class Option(object):
         return str(self.strikes) + str(self.structure)
 
     def __str__(self):
-        strike_str = ', '.join(str(strike) for strike in self.strikes)
+        strike_str = '/'.join(str(strike) for strike in self.strikes)
         return strike_str + ' ' + str(self.structure)
 
     def get_price(self):
@@ -80,6 +80,7 @@ class Option(object):
             return float(df.call[1] + df.put[0])
         else:
             raise AttributeError('Unknown struct type: ', structure)
+
 
 if __name__ == '__main__':
     struct = Option.rand()
