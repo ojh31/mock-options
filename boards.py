@@ -142,20 +142,19 @@ class MarketBoard(Board):
         s += self.get_stock_and_rc()
         s += "\n"
         s += spaces(5)
-        s += "Delta      Call        "
+        s += "PutsAndStock        Call        "
         s += "|  Strike   |"
-        s += "        Put         Buywrite       Put&Stock"
+        s += "        Put         Buywrite"
         for strike, row in self.df.iterrows():
             s += "\n"
             s += spaces(7)
-            rowarray = ["{:2d}".format(row["calldelta"]),
+            rowarray = [row["put&stock"],
                         row["call"],
                         "|",
                         "{:3d}".format(strike),
                         "|",
                         row["put"],
-                        row["buywrite"],
-                        row["put&stock"]]
+                        row["buywrite"]]
             rowstrs = map(str, rowarray)
             s += spaces(4).join(rowstrs)
             if strike != self.df.index[-1]:
@@ -182,6 +181,7 @@ class PublicBoard(MarketBoard):
     def __init__(self):
         MarketBoard.__init__(self)
         self = self.clear().make_babies()
+
 
 if __name__ == "__main__":
     public_board = PublicBoard()
