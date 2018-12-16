@@ -1,4 +1,4 @@
-from boards import PriceBoard
+from currencies import Price
 import random
 import enum
 import numpy as np
@@ -32,16 +32,15 @@ class Structure(enum.Enum):
 class Option(object):
 
     def __init__(self, strikes, structure, board):
-        if isinstance(strikes, int):
-            strikes = [strikes]
-        self.strikes = strikes
+        if isinstance(strikes, int) or isinstance(strikes, np.int64):
+            self.strikes = [strikes]
+        else:
+            self.strikes = strikes
         self.structure = structure
         self.board = board
 
     @classmethod
     def rand(cls, board=None):
-        if board is None:
-            board = PriceBoard()
         struct = random.choice(list(Structure))
         strikes = np.random.choice(board.get_strikes(),
                                    size=struct.num_strikes(),
@@ -63,23 +62,24 @@ class Option(object):
         df = board.df[board.df.index.isin(strikes)][['call', 'put']].copy()
         df = df.reset_index(drop=True)
         if structure is Structure.CALL:
-            return float(df.call)
+            px = float(df.call)
         elif structure is Structure.PUT:
-            return float(df.put)
+            px = float(df.put)
         elif structure is Structure.COMBO:
-            return float(df.call - df.put)
+            px = float(df.call - df.put)
         elif structure is Structure.STRADDLE:
-            return float(df.call + df.put)
+            px = float(df.call + df.put)
         elif structure is Structure.CALLSPREAD:
-            return float(df.call[0] - df.call[1])
+            px = float(df.call[0] - df.call[1])
         elif structure is Structure.PUTSPREAD:
-            return float(df.put[1] - df.put[0])
+            px = float(df.put[1] - df.put[0])
         elif structure is Structure.RISKY:
-            return abs(float((df.put[1] - df.call[0])))
+            px = abs(float((df.put[1] - df.call[0])))
         elif structure is Structure.STRANGLE:
-            return float(df.call[1] + df.put[0])
+            px = float(df.call[1] + df.put[0])
         else:
             raise AttributeError('Unknown struct type: ', structure)
+        return Price(px)
 
 
 if __name__ == '__main__':
