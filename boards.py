@@ -1,6 +1,7 @@
 from currencies import Price
 from markets import Market
 from strings import spaces
+from structures import Option, Structure
 from scipy.stats import norm
 import numpy as np
 import pandas as pd
@@ -66,6 +67,10 @@ class Board(object):
         K = np.array(self.get_strikes(S))
         return Price(np.mean(K - self.PV(K)))
 
+    def get_straddle(self):
+        atm = self.df.index[2]
+        return Option(atm, Structure.STRADDLE, self)
+
     def infer_board_as_df(self, S):
         # Infer dataframe of option Prices from stock price using Black-Scholes
         sigma = self.sigma
@@ -112,6 +117,7 @@ class PriceBoard(Board):
         self.S = Price(S)
         self.rc = self.get_rc(S)
         self.df = self.infer_board_as_df(S)
+        self.V = self.get_straddle().get_price()
 
 
 class MarketBoard(Board):
@@ -132,6 +138,7 @@ class MarketBoard(Board):
         for op in opttypes:
             df[op] = df[op].map(Market.from_price)
         self.S = Market.from_price(board.S, width=.20)
+        self.V = Market.from_price(board.V, width=.30)
         self.rc = board.rc
         self.df = df
         self.fair = board
@@ -142,24 +149,24 @@ class MarketBoard(Board):
         s += self.get_stock_and_rc()
         s += "\n"
         s += spaces(5)
-        s += "Delta      Call        "
+        s += "PutsAndStock        Call        "
         s += "|  Strike   |"
-        s += "        Put         Buywrite       Put&Stock"
+        s += "        Put         Buywrite"
         for strike, row in self.df.iterrows():
             s += "\n"
             s += spaces(7)
-            rowarray = ["{:2d}".format(row["calldelta"]),
+            rowarray = [row["put&stock"],
                         row["call"],
                         "|",
                         "{:3d}".format(strike),
                         "|",
                         row["put"],
-                        row["buywrite"],
-                        row["put&stock"]]
+                        row["buywrite"]]
             rowstrs = map(str, rowarray)
             s += spaces(4).join(rowstrs)
             if strike != self.df.index[-1]:
                 s += "\n{}<".format(row["callspread"])
+        s += f"\n{self.get_straddle()}: {self.V}"
         return s
 
     def clear(self):
@@ -182,6 +189,7 @@ class PublicBoard(MarketBoard):
     def __init__(self):
         MarketBoard.__init__(self)
         self = self.clear().make_babies()
+
 
 if __name__ == "__main__":
     public_board = PublicBoard()

@@ -75,7 +75,11 @@ class Price(object):
 
     def __mul__(self, other):
         # Scalar multiplication
-        return Price(float(other) * float(self))
+        return Price(float(self) * float(other))
+
+    def __rmul__(self, other):
+        # Scalar multiplication
+        return Price(float(self) * float(other))
 
     def __truediv__(self, other):
         # Scalar division
