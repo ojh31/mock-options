@@ -9,6 +9,17 @@ from sounds import shout
 buywords = set(["buy", "bid", "long", "mine", "buying"])
 sellwords = set(["ask", "offer", "sell", "short", "yours", "your's",
                  "selling"])
+exitwords = set(["quit", "exit", "close"])
+
+
+def get_user_command():
+    cmdstr = input("")
+    if 'fair' in cmdstr:
+        return 'show_fair'
+    elif any(word in cmdstr for word in exitwords):
+        return 'exit'
+    else:
+        return None
 
 
 def get_user_market(order=None):

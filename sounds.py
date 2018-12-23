@@ -58,7 +58,7 @@ def rand_countdown(beats_min=5, beats_max=30, verbose=True):
     """
     Random countdown after key press
     """
-    beats_to_wait = random.randint(5, 30)
+    beats_to_wait = random.randint(5, 20)
     for i in range(beats_to_wait, 0, -1):
         if verbose:
             sys.stdout.write('\r{:d}'.format(i))
