@@ -19,7 +19,7 @@ class Mock(object):
 
     def play(self):
         if not self.clients:
-            return 'Game over'
+            return shout('Game over')
         print(self.publicBoard)
         self.get_user_command()
         order = self.pop()
