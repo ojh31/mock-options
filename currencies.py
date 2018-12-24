@@ -99,6 +99,9 @@ class Price(object):
     def __lt__(self, other):
         return self.price < other
 
+    def __bool__(self):
+        return not np.isnan(self.price)
+
 
 class OptionPrice(Price):
     """

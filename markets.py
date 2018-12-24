@@ -93,8 +93,5 @@ class Market(object):
         # Python float representation
         return float(self.get_mid().round())
 
-
-if __name__ == '__main__':
-    pass
-    # should demonstrate Market.from_price
-    # need to deal with widths correctly
+    def __bool__(self):
+        return self.bid.__bool__() or self.ask.__bool__()

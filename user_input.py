@@ -35,7 +35,7 @@ def get_user_market(order=None):
              f"the {option}:\n")
     shout(query)
     try:
-        strmkt = input(query)
+        strmkt = input("")
         if strmkt:
             market = market_from_string(strmkt)
             if market.bid > fair:
