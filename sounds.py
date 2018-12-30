@@ -47,11 +47,14 @@ def shout(text):
     """
     Play sound from text
     """
+    text = str(text)
     mpeg_name = (text.replace(' ', '_')
                      .replace('/', '_')
                      .replace('\n', '') + '.mp3')
+    print(text)
     text_to_mp3(text, mpeg_name)
     play_mp3(mpeg_name)
+    return text
 
 
 def rand_countdown(beats_min=5, beats_max=30, verbose=True):

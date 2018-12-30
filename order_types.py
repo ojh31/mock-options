@@ -17,12 +17,17 @@ class Direction(enum.IntEnum):
         else:
             raise AttributeError(f'Bad direction name: {self.name}!')
 
+    def __int__(self):
+        return self.value
+
 
 class Order(object):
 
     def __init__(self, opt, dirn, price, size):
         self.option = opt
         self.direction = dirn
+        if isinstance(price, float):
+            price = OptionPrice(price).round()
         self.price = price
         self.size = size
 
@@ -31,16 +36,39 @@ class Order(object):
         dirn = self.direction
         px = self.price
         size = self.size
+        if isinstance(px, float):
+            px = OptionPrice(px)
+        px = px.round()
         if dirn is Direction.BUY:
-            return f'{px} bid for {size} of the {opt}'
+            return f'{px:.2f} bid for {size} lots of the {opt}'
         elif dirn is Direction.SELL:
-            return f'Offer {size} of the {opt} @ {px}'
+            return f'Offer {size} lots of the {opt} @ {px:.2f}'
+
+    def take_str(self):
+        dirn = self.direction
+        prefix = 'Okay... '
+        if dirn is Direction.BUY:
+            return prefix + 'mine!'
+        elif dirn is Direction.SELL:
+            return prefix + 'yours!'
+
+    def __add__(self, other):
+        assert self.option == other.option
+        opt = self.option
+        assert self.direction == other.direction
+        dirn = self.direction
+        if dirn == Direction.BUY:
+            px = max(self.price, other.price)
+        elif dirn == Direction.SELL:
+            px = min(self.price, other.price)
+        size = self.size + other.size
+        return Order(opt, dirn, px, size)
 
 
 class IcebergOrder(object):
 
     @classmethod
-    def rand(cls, board=None):
+    def rand(cls, board):
         option = Option.rand(board)
         dirn = random.choice([Direction.BUY, Direction.SELL])
         agg = random.choice([0.05, 0.1, 0.2])
@@ -57,10 +85,9 @@ class IcebergOrder(object):
 
     def pop(self, size=None):
         opt = self.option
-        agg = self.aggression
         dirn = self.direction
-        price = OptionPrice((1 + dirn.value * agg) * opt.get_price())
         peak = self.peak
+        price = self.get_price()
         if size is None:
             size = peak
         self.total -= size
@@ -69,8 +96,8 @@ class IcebergOrder(object):
     def is_empty(self):
         return self.total <= 0
 
-
-if __name__ == "__main__":
-    ice = IcebergOrder.rand()
-    while not ice.is_empty():
-        print(ice.pop())
+    def get_price(self):
+        opt = self.option
+        dirn = self.direction
+        agg = self.aggression
+        return OptionPrice((1 + dirn.value * agg) * opt.get_price())

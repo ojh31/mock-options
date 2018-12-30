@@ -142,6 +142,7 @@ class MarketBoard(Board):
         self.rc = board.rc
         self.df = df
         self.fair = board
+        self.bot_orders = {}
 
     def __str__(self):
         # Prettified string representation of options board
@@ -167,6 +168,9 @@ class MarketBoard(Board):
             if strike != self.df.index[-1]:
                 s += "\n{}<".format(row["callspread"])
         s += f"\n{self.get_straddle()}: {self.V}"
+        if self.bot_orders:
+            s += "\n"
+            s += "\n".join([str(order) for order in self.bot_orders.values()])
         return s
 
     def clear(self):
@@ -182,6 +186,15 @@ class MarketBoard(Board):
         self[bw_pos] = Market.from_price(put_fair, width=.2)
         self[pns_pos] = Market.from_price(call_fair, width=.2)
         return self
+
+    def append(self, order):
+        opt = order.option
+        dirn = order.direction
+        key = (opt, dirn)
+        if key in self.bot_orders.keys():
+            self.bot_orders[key] += order
+        else:
+            self.bot_orders[key] = order
 
 
 class PublicBoard(MarketBoard):
