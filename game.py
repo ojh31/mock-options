@@ -4,6 +4,7 @@ from boards import PublicBoard
 from user_input import get_user_market, get_user_command
 from sounds import shout, rand_countdown
 from order_types import IcebergOrder
+from matching import is_book_crossed
 
 
 class Mock(object):
@@ -27,7 +28,10 @@ class Mock(object):
         if mkt:
             print('Player market: {}'.format(mkt))
             rand_countdown()
-            shout(order.take_str())
+            if is_book_crossed(order, mkt):
+                shout(order.take_str())
+            else:
+                shout('Nothing there...')
         else:
             self.publicBoard.append(order)
             shout(str(order))
