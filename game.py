@@ -5,17 +5,22 @@ from user_input import get_user_market, get_user_command
 from sounds import shout, rand_countdown
 from order_types import IcebergOrder
 from matching import is_book_crossed
+from game_logging import Logger
 
 
 class Mock(object):
     # Game of mock against a bot
 
     def __init__(self):
-        num_clients = 1
+        self.logger = Logger()
+        num_clients = 5
         self.publicBoard = PublicBoard()
         self.fairBoard = self.publicBoard.fair
         self.clients = [IcebergOrder.rand(self.fairBoard)
                         for _ in range(num_clients)]
+        for client in self.clients:
+            self.logger.add(client)
+        self.logger.add(self.fairBoard)
         self.play()
 
     def play(self):
@@ -26,15 +31,15 @@ class Mock(object):
         order = self.pop()
         mkt = get_user_market(order)
         if mkt:
-            print('Player market: {}'.format(mkt))
+            self.logger.show('Player market: {}'.format(mkt))
             rand_countdown()
             if is_book_crossed(order, mkt):
-                shout(order.take_str())
+                self.logger.shout(order.take_str())
             else:
-                shout('Nothing there...')
+                self.logger.shout('Nothing there...')
         else:
             self.publicBoard.append(order)
-            shout(str(order))
+            self.logger.shout(str(order))
         self.get_user_command()
         self.play()
 
@@ -54,7 +59,10 @@ class Mock(object):
         return popped
 
     def show_fair(self):
-        print(self.fairBoard)
+        self.logger.confirm(self.fairBoard)
+
+    def show_log(self):
+        self.logger.view()
 
     def exit(self):
         sys.exit()

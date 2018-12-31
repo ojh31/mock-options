@@ -14,11 +14,16 @@ exitwords = set(["quit", "exit", "close"])
 
 def get_user_command():
     cmdstr = input("")
-    if 'fair' in cmdstr:
+    if not cmdstr:
+        return None
+    elif 'fair' in cmdstr:
         return 'show_fair'
+    elif 'log' in cmdstr:
+        return 'show_log'
     elif any(word in cmdstr for word in exitwords):
         return 'exit'
     else:
+        print('No command recognised')
         return None
 
 

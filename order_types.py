@@ -101,3 +101,19 @@ class IcebergOrder(object):
         dirn = self.direction
         agg = self.aggression
         return OptionPrice((1 + dirn.value * agg) * opt.get_price())
+
+    def __str__(self):
+        opt = self.option
+        dirn = self.direction
+        agg = self.aggression
+        price = 1 + dirn.value * agg
+        peak = self.peak
+        total = self.total
+        ice_str = str(id(self)) + ': '
+        if dirn == Direction.BUY:
+            ice_str += (f'bid {price:.2f} in {opt} '
+                        f'for {peak} lot clips, total {total}')
+        elif dirn == Direction.SELL:
+            ice_str += (f'offer {peak} lots up to {total} '
+                        f'of {opt} @ {price:.2f}')
+        return ice_str
