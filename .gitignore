@@ -1,5 +1,6 @@
-# Sounds
+# Temporary directories
 sound-cache/
+temp/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
