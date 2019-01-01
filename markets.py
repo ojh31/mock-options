@@ -30,6 +30,7 @@ class Market(object):
             bid = Price(bid, tick_size).ceil()
             bid = max(float(bid), 0)
             ask = Price(ask, tick_size).floor()
+            print(bid, mid, ask, tick_size, width)
             return cls(bid, ask)
 
     def __init__(self, bid, ask):

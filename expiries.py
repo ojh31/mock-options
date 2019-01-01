@@ -35,12 +35,12 @@ def next_expiry(date):
         return this_expiry(next_month)
 
 
-def days_to_expiry(date):
+def days_to_expiry(date=datetime.date.today()):
     expiry = next_expiry(date)
     return pd.date_range(date, expiry, freq=pd.tseries.offsets.BDay()).size
 
 
-def years_to_expiry(date):
+def years_to_expiry(date=datetime.date.today()):
     trading_days = 252
     return days_to_expiry(date) / trading_days
 
@@ -49,5 +49,5 @@ if __name__ == '__main__':
     print(next_expiry(datetime.date(2019, 1, 17)))
     print(next_expiry(datetime.date(2019, 1, 18)))
     print(next_expiry(datetime.date(2019, 1, 19)))
-    print(days_to_expiry(datetime.date.today()))
-    print(years_to_expiry(datetime.date.today()))
+    print(days_to_expiry())
+    print(years_to_expiry())

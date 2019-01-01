@@ -2,12 +2,12 @@ from currencies import Price
 from markets import Market
 from strings import spaces
 from structures import Option, Structure
+from expiries import years_to_expiry
 from scipy.stats import norm
 import numpy as np
 import pandas as pd
 import random
 import copy
-import argparse
 
 Phi = norm.cdf
 opttypes = ["call", "put", "put&stock", "buywrite"]
@@ -110,8 +110,8 @@ class PriceBoard(Board):
 
     def __init__(self, S=None):
         self.rate = 0.1
-        self.sigma = 0.4
-        self.expiry = 0.1
+        self.sigma = 0.8
+        self.expiry = years_to_expiry()
         self.box = 5
         if S is None:
             S = random.uniform(30, 120)
