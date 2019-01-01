@@ -109,8 +109,8 @@ class PriceBoard(Board):
     # A board of Prices
 
     def __init__(self, S=None):
-        self.rate = 0.01
-        self.sigma = 0.7
+        self.rate = 0.1
+        self.sigma = 0.4
         self.expiry = 0.1
         self.box = 5
         if S is None:
@@ -140,6 +140,7 @@ class MarketBoard(Board):
             df[op] = df[op].map(Market.from_price)
         self.S = Market.from_price(board.S, width=.20)
         self.V = Market.from_price(board.V, width=.30)
+        self.box = board.box
         self.rc = board.rc
         self.df = df
         self.fair = board
