@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import random
 import copy
+import argparse
 
 Phi = norm.cdf
 opttypes = ["call", "put", "put&stock", "buywrite"]
@@ -14,10 +15,6 @@ opttypes = ["call", "put", "put&stock", "buywrite"]
 
 class Board(object):
     # Mock board parent class with options, stock and r/c
-    rate = 0.01
-    sigma = 0.7
-    expiry = 0.1
-    box = 5
 
     def PV(self, arr):
         # Get Present Value
@@ -112,6 +109,10 @@ class PriceBoard(Board):
     # A board of Prices
 
     def __init__(self, S=None):
+        self.rate = 0.01
+        self.sigma = 0.7
+        self.expiry = 0.1
+        self.box = 5
         if S is None:
             S = random.uniform(30, 120)
         self.S = Price(S)
