@@ -19,18 +19,17 @@ class Market(object):
 
     @classmethod
     def from_price(cls, mid, width=None):
-            mid = float(mid)
-            max_width = Market.infer_max_width(mid)
-            max_width = Market.infer_max_width(mid - 0.5 * max_width)
-            if width is None:
-                width = max_width
-            bid = mid - 0.5 * width
-            ask = mid + 0.5 * width
-            tick_size = OptionPrice(mid).tick_size
-            bid = Price(bid, tick_size).ceil()
-            bid = max(float(bid), 0)
-            ask = Price(ask, tick_size).floor()
-            return cls(bid, ask)
+        mid = float(mid)
+        max_width = Market.infer_max_width(mid)
+        max_width = Market.infer_max_width(mid - 0.5 * max_width)
+        if width is None:
+            width = max_width
+        bid = mid - 0.5 * width
+        ask = mid + 0.5 * width
+        tick_size = OptionPrice(mid).tick_size
+        bid = Price(bid, tick_size).ceil()
+        ask = Price(ask, tick_size).floor()
+        return cls(bid, ask)
 
     def __init__(self, bid, ask):
         bid = float(bid)
@@ -95,3 +94,10 @@ class Market(object):
 
     def __bool__(self):
         return self.bid.__bool__() or self.ask.__bool__()
+
+
+if __name__ == '__main__':
+    print(Market.from_price(0.12))
+    print(Market.from_price(0))
+    print(Market.from_price(-0.05))
+    print(Market.from_price(-0.09))

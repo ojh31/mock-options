@@ -2,11 +2,12 @@ from currencies import Price
 from markets import Market
 from strings import spaces
 from structures import Option, Structure
+from expiries import years_to_expiry
 from scipy.stats import norm
 import numpy as np
 import pandas as pd
-import random
 import copy
+import yaml
 
 Phi = norm.cdf
 opttypes = ["call", "put", "put&stock", "buywrite"]
@@ -14,10 +15,6 @@ opttypes = ["call", "put", "put&stock", "buywrite"]
 
 class Board(object):
     # Mock board parent class with options, stock and r/c
-    rate = 0.01
-    sigma = 0.7
-    expiry = 0.1
-    box = 5
 
     def PV(self, arr):
         # Get Present Value
@@ -112,8 +109,17 @@ class PriceBoard(Board):
     # A board of Prices
 
     def __init__(self, S=None):
+        with open('configs/board.yml', 'r') as stream:
+            try:
+                configs = yaml.load(stream)
+            except yaml.YAMLError as e:
+                print(e)
+        self.rate = configs['int']
+        self.sigma = configs['vol']
+        self.expiry = years_to_expiry()
+        self.box = configs['box']
         if S is None:
-            S = random.uniform(30, 120)
+            S = configs['stock']
         self.S = Price(S)
         self.rc = self.get_rc(S)
         self.df = self.infer_board_as_df(S)
@@ -139,6 +145,7 @@ class MarketBoard(Board):
             df[op] = df[op].map(Market.from_price)
         self.S = Market.from_price(board.S, width=.20)
         self.V = Market.from_price(board.V, width=.30)
+        self.box = board.box
         self.rc = board.rc
         self.df = df
         self.fair = board
@@ -205,7 +212,6 @@ class PublicBoard(MarketBoard):
 
 
 if __name__ == "__main__":
-    public_board = PublicBoard()
-    print(public_board.fair)
-    input("")
-    print(public_board)
+    print(PriceBoard())
+    input('')
+    print(PublicBoard())
