@@ -96,6 +96,9 @@ class Price(object):
     def __gt__(self, other):
         return self.price > other
 
+    def __ge__(self, other):
+        return self.price >= other
+
     def __lt__(self, other):
         return self.price < other
 

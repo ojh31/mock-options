@@ -110,7 +110,7 @@ class PriceBoard(Board):
 
     def __init__(self, S=None):
         self.rate = 0.1
-        self.sigma = 0.8
+        self.sigma = 0.4
         self.expiry = years_to_expiry()
         self.box = 5
         if S is None:

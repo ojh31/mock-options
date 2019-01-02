@@ -19,12 +19,13 @@ class Market(object):
 
     @classmethod
     def from_price(cls, mid, width=None):
+            assert mid >= 0
             mid = float(mid)
             max_width = Market.infer_max_width(mid)
             max_width = Market.infer_max_width(mid - 0.5 * max_width)
             if width is None:
                 width = max_width
-            bid = mid - 0.5 * width
+            bid = max(mid - 0.5 * width, 0)
             ask = mid + 0.5 * width
             tick_size = OptionPrice(mid).tick_size
             bid = Price(bid, tick_size).ceil()
